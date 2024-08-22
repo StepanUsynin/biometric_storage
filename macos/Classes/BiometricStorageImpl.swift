@@ -117,7 +117,15 @@ class BiometricStorageImpl {
           }
         }
       }
-    } else {
+    } else if ("exists" == call.method) {
+            requiredArg("name") { name in
+              requiredArg("iosPromptInfo") { promptInfo in
+                requireStorage(name) { file in
+                  file.exists(result, IOSPromptInfo(params: promptInfo))
+                }
+              }
+            }
+          } else {
       result(storageMethodNotImplemented)
     }
   }
@@ -328,6 +336,21 @@ class BiometricStorageFile {
       return
     }
     result(nil)
+  }
+
+  func exists() {
+       let query: [String: Any] = [
+          kSecClass as String: kSecClassGenericPassword,
+          kSecAttrService as String: "flutter_biometric_storage",
+          kSecAttrAccount as String: name,
+          kSecReturnData as String: false, // We don't need the actual data, just check existence
+          kSecMatchLimit as String: kSecMatchLimitOne // Limit to one match
+      ]
+
+      var itemTypeRef: AnyObject?
+      let status = SecItemCopyMatching(query as CFDictionary, &itemTypeRef)
+
+      result(status == errSecSuccess)
   }
   
   private func handleOSStatusError(_ status: OSStatus, _ result: @escaping StorageCallback, _ message: String) {

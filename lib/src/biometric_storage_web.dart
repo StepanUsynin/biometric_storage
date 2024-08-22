@@ -57,4 +57,10 @@ class BiometricStoragePluginWeb extends BiometricStorage {
   ) async {
     web.window.localStorage.setItem(name, content);
   }
+
+  @override
+  Future<bool?> isExists(String name, PromptInfo promptInfo) {
+    // TODO: implement isExists
+    throw UnimplementedError();
+  }
 }

@@ -60,6 +60,7 @@ const _authErrorCodeMapping = {
 
 class BiometricStorageException implements Exception {
   BiometricStorageException(this.message);
+
   final String message;
 
   @override
@@ -214,6 +215,7 @@ class PromptInfo {
     this.iosPromptInfo = IosPromptInfo.defaultValues,
     this.macOsPromptInfo = IosPromptInfo.defaultValues,
   });
+
   static const defaultValues = PromptInfo();
 
   final AndroidPromptInfo androidPromptInfo;
@@ -290,6 +292,12 @@ abstract class BiometricStorage extends PlatformInterface {
   Future<void> write(
     String name,
     String content,
+    PromptInfo promptInfo,
+  );
+
+  @protected
+  Future<bool?> isExists(
+    String name,
     PromptInfo promptInfo,
   );
 }
@@ -445,6 +453,14 @@ class MethodChannelBiometricStorage extends BiometricStorage {
     }
   }
 
+  @override
+  Future<bool?> isExists(String name, PromptInfo promptInfo) =>
+      _transformErrors(
+          _channel.invokeMethod<bool>('is_exists', <String, dynamic>{
+        'name': name,
+        ..._promptInfoForCurrentPlatform(promptInfo),
+      }));
+
   Future<T> _transformErrors<T>(Future<T> future) =>
       future.catchError((Object error, StackTrace stackTrace) {
         if (error is PlatformException) {
@@ -496,4 +512,8 @@ class BiometricStorageFile {
   /// Delete the content of this storage.
   Future<void> delete({PromptInfo? promptInfo}) =>
       _plugin.delete(name, promptInfo ?? defaultPromptInfo);
+
+  /// Delete the content of this storage.
+  Future<bool?> isExists({PromptInfo? promptInfo}) =>
+      _plugin.isExists(name, promptInfo ?? defaultPromptInfo);
 }
